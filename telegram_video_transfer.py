@@ -16,11 +16,10 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
 # --- Configuration ---
-# It's best practice to use environment variables for sensitive data.
-# You can set these in your operating system or a .env file.
-# For simplicity, we'll define them here. Replace with your actual values.
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
-TARGET_CHANNEL_ID = "YOUR_CHANNEL_ID_HERE" # e.g., "@yourpublicchannel" or "-1001234567890"
+# The bot now reads credentials from environment variables for security.
+# You will set these variables in your hosting environment (e.g., Railway).
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+TARGET_CHANNEL_ID = os.environ.get("TARGET_CHANNEL_ID")
 
 # --- Logging Setup ---
 # Enable logging to see errors and bot activity.
@@ -76,7 +75,7 @@ async def transfer_video_command(update: Update, context: ContextTypes.DEFAULT_T
         await context.bot.send_video(
             chat_id=TARGET_CHANNEL_ID,
             video=video_url,
-            caption="Video transferred via the URL Bot! 🚀",
+            caption="Video transferred via the URL Bot! �",
             # You can add other parameters like 'duration', 'width', 'height' if you know them.
             # 'supports_streaming=True' is great for larger files.
             supports_streaming=True
@@ -102,6 +101,11 @@ async def transfer_video_command(update: Update, context: ContextTypes.DEFAULT_T
 
 def main() -> None:
     """Start the bot."""
+    # Pre-flight check for environment variables
+    if not BOT_TOKEN or not TARGET_CHANNEL_ID:
+        logger.error("FATAL: BOT_TOKEN or TARGET_CHANNEL_ID environment variables not set.")
+        return
+        
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(BOT_TOKEN).build()
 
@@ -118,3 +122,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+�
