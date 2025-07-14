@@ -30,6 +30,15 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
+# --- Debugging Step ---
+# Let's print the status of the variables the script sees.
+# This will show up in your Railway deployment logs.
+# For security, we do not print the actual token, just whether it was found.
+logger.info(f"--- Environment Variable Check ---")
+logger.info(f"BOT_TOKEN found: {'Yes' if BOT_TOKEN else 'No'}")
+logger.info(f"TARGET_CHANNEL_ID found: {'Yes' if TARGET_CHANNEL_ID else 'No'}")
+logger.info(f"------------------------------------")
+
 
 # --- Bot Command Handlers ---
 
@@ -56,8 +65,6 @@ async def transfer_video_command(update: Update, context: ContextTypes.DEFAULT_T
     Handler for the /transfer command.
     Parses the URL and sends the video to the target channel.
     """
-    # context.args is a list of strings after the command, separated by spaces.
-    # We expect one argument: the URL.
     if not context.args:
         await update.message.reply_text("❌ Please provide a URL after the /transfer command.")
         return
@@ -65,32 +72,25 @@ async def transfer_video_command(update: Update, context: ContextTypes.DEFAULT_T
     video_url = context.args[0]
     logger.info(f"Received transfer request for URL: {video_url}")
 
-    # Inform the user that the process has started
-    await update.message.reply_text("⏳ Got it! Starting the transfer process. This might take a moment depending on the video size...")
+    await update.message.reply_text("⏳ Got it! Starting the transfer process...")
 
     try:
-        # This is the core logic.
-        # The `send_video` method directly accepts a URL.
-        # Telegram's servers will download the file from the URL.
         await context.bot.send_video(
             chat_id=TARGET_CHANNEL_ID,
             video=video_url,
             caption="Video transferred via the URL Bot! 🚀",
-            # You can add other parameters like 'duration', 'width', 'height' if you know them.
-            # 'supports_streaming=True' is great for larger files.
             supports_streaming=True
         )
         logger.info(f"Successfully transferred video from {video_url} to {TARGET_CHANNEL_ID}")
         await update.message.reply_text("✅ Success! The video has been transferred to the channel.")
 
     except Exception as e:
-        # Handle potential errors
         logger.error(f"Failed to transfer video from {video_url}. Error: {e}")
         error_message = (
             "😥 An error occurred.\n\n"
             "Please check a few things:\n"
-            "1. Is the link a **direct** link to a video file (e.g., .mp4, .mov)? Links to pages like YouTube won't work.\n"
-            "2. Is the video file accessible and not too large? (Telegram has size limits).\n"
+            "1. Is the link a **direct** link to a video file (e.g., .mp4, .mov)?\n"
+            "2. Is the video file accessible and not too large?\n"
             f"3. Is the bot an admin in the channel `{TARGET_CHANNEL_ID}`?\n\n"
             f"Error details: `{e}`"
         )
@@ -101,21 +101,17 @@ async def transfer_video_command(update: Update, context: ContextTypes.DEFAULT_T
 
 def main() -> None:
     """Start the bot."""
-    # Pre-flight check for environment variables
+    # Pre-flight check for environment variables.
+    # The debug logs above will tell us why this might fail.
     if not BOT_TOKEN or not TARGET_CHANNEL_ID:
-        logger.error("FATAL: BOT_TOKEN or TARGET_CHANNEL_ID environment variables not set.")
+        logger.error("FATAL: One or both environment variables are missing. Bot will not start.")
         return
         
-    # Create the Application and pass it your bot's token.
     application = Application.builder().token(BOT_TOKEN).build()
 
-    # Register the command handlers
-    # Note the command is now /transfer
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("transfer", transfer_video_command))
 
-    # Start the Bot. It will listen for commands indefinitely.
-    # The bot will use polling to get updates from Telegram.
     logger.info("Bot is starting...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
@@ -123,4 +119,4 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# --- Version 3: Cleaned for SyntaxError ---
+# --- Version 4: Added Debug Logging ---
