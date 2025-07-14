@@ -75,7 +75,7 @@ async def transfer_video_command(update: Update, context: ContextTypes.DEFAULT_T
         await context.bot.send_video(
             chat_id=TARGET_CHANNEL_ID,
             video=video_url,
-            caption="Video transferred via the URL Bot! �",
+            caption="Video transferred via the URL Bot! 🚀",
             # You can add other parameters like 'duration', 'width', 'height' if you know them.
             # 'supports_streaming=True' is great for larger files.
             supports_streaming=True
@@ -122,4 +122,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-�
+
+# --- Version 3: Cleaned for SyntaxError ---
